@@ -1,10 +1,10 @@
 {
-  "name": "jest-mongodb-memory-server-issue",
+  "name": "nestjs-mongodb-memory-server",
   "version": "0.0.1",
   "description": "",
-  "author": "",
+  "author": "Thomas Shallenberger",
   "private": true,
-  "license": "UNLICENSED",
+  "license": "MIT",
   "scripts": {
     "prebuild": "rimraf dist",
     "build": "nest build",
