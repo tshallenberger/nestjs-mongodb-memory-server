@@ -3,7 +3,7 @@ import { Document, Types } from 'mongoose';
 
 export type CatDocument = Cat & Document;
 
-@Schema({ collection: 'cats' })
+@Schema({ collection: 'cats', id: true })
 export class Cat {
   _id?: Types.ObjectId | undefined;
   id?: string | undefined;

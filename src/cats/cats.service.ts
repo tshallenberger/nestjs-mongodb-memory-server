@@ -9,17 +9,12 @@ import { CreateCatDto } from './dto/CreateCatDto';
 export class CatsService {
   constructor(@InjectModel(Cat.name) private catModel: Model<CatDocument>) {}
 
-  async upsert(createCatDto: CreateCatDto): Promise<Cat> {
-    const createdCat = await this.catModel.findByIdAndUpdate(
-      createCatDto.id,
-      createCatDto,
-      {
-        useFindAndModify: true,
-        upsert: true,
-        new: true,
-      },
-    );
-    return createdCat.save();
+  async upsert(dto: CreateCatDto): Promise<Cat> {
+    if (dto.id?.length) {
+      return await this.catModel.findByIdAndUpdate(dto.id, dto);
+    } else {
+      return await this.catModel.create(dto);
+    }
   }
 
   async findAll(): Promise<Cat[]> {

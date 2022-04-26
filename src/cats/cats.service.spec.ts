@@ -5,6 +5,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { CatsService } from './cats.service';
 import { CreateCatDto } from './dto/CreateCatDto';
 import { Cat, CatDocument } from './schemas/cat.schema';
+import mongoose from 'mongoose';
 
 describe('CatsService', () => {
   let service: CatsService;
@@ -14,13 +15,13 @@ describe('CatsService', () => {
     age: 1,
     breed: 'Breed',
   };
-  const CatModelToken = getModelToken(Cat.name);
-  let model: Model<CatDocument>;
+  const catModelToken = getModelToken(Cat.name);
+  let catModel: Model<CatDocument>;
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         {
-          provide: CatModelToken,
+          provide: catModelToken,
           useValue: {
             create: jest.fn(),
             findByIdAndUpdate: jest.fn().mockResolvedValue({}),
@@ -31,7 +32,7 @@ describe('CatsService', () => {
     }).compile();
 
     service = module.get<CatsService>(CatsService);
-    model = await module.resolve<Model<CatDocument>>(CatModelToken);
+    catModel = await module.resolve<Model<CatDocument>>(catModelToken);
   });
 
   it('should be defined', () => {
@@ -42,21 +43,38 @@ describe('CatsService', () => {
     it('should be defined', () => {
       expect(service).toBeDefined();
     });
-    it(`should upsert a Cat in MongoDB`, async () => {
-      expect(service.upsert).toBeDefined();
+    describe('given null ID', () => {
+      it(`should create a Cat in MongoDB`, async () => {
+        expect(service.upsert).toBeDefined();
 
-      model.findByIdAndUpdate = jest.fn().mockResolvedValue({
-        save: jest.fn().mockResolvedValue(mockCat),
+        catModel.create = jest.fn().mockResolvedValue(mockCat);
+
+        const dto = new CreateCatDto();
+        dto.age = mockCat.age;
+        dto.breed = mockCat.breed;
+        dto.age = mockCat.age;
+
+        const result = await service.upsert(dto);
+
+        expect(result).toEqual(mockCat);
       });
+    });
+    describe('given valid ID', () => {
+      it(`should findByIdAndUpdate a Cat in MongoDB`, async () => {
+        expect(service.upsert).toBeDefined();
 
-      const dto = new CreateCatDto();
-      dto.age = mockCat.age;
-      dto.breed = mockCat.breed;
-      dto.age = mockCat.age;
+        catModel.findByIdAndUpdate = jest.fn().mockResolvedValue(mockCat);
 
-      const result = await service.upsert(dto);
+        const dto = new CreateCatDto();
+        dto.id = mongoose.Types.ObjectId.generate().toString();
+        dto.age = mockCat.age;
+        dto.breed = mockCat.breed;
+        dto.age = mockCat.age;
 
-      expect(result).toEqual(mockCat);
+        const result = await service.upsert(dto);
+
+        expect(result).toMatchObject(mockCat);
+      });
     });
   });
   describe('findAll', () => {
